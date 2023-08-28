@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rediscommander-svc
+spec:
+  type: LoadBalancer
+  selector:
+    app: rediscommander
+  ports:
+    - port: 8081
+      targetPort: 8081
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rediscommander-dep
+  labels:
+    app: rediscommander
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rediscommander
+  template:
+    metadata:
+      labels:
+        app: rediscommander
+    spec:
+      containers:
+        - name: rediscommander
+          image: rediscommander/redis-commander:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+          env:
+            - name: REDIS_HOSTS
+              valueFrom:
+                configMapKeyRef:
+                  name: redis-config
+                  key: host
